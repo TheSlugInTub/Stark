@@ -17,7 +17,7 @@ key-value pairs.
 
 ## Example
 
-```json
+```
 # An example Stark document.
 
 # This is a comment
