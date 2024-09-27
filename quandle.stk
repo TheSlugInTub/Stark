@@ -1,0 +1,14 @@
+
+projectName = 'Stark'
+
+[child]
+
+# This is the first child of the main store
+
+string = 'hey jude'
+INTEGER = 251
+
+[nextChild]
+
+newstring = 'OH CMON'
+SpeedOfSound = 251.131195

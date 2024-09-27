@@ -35,7 +35,7 @@ void Store::Add(std::string key, float floatValue)
     pairs.push_back(pair);
 }
 
-void Store::Add(std::string key, std::string stringValue)
+void Store::Add(std::string key, const char* stringValue)
 {
     Pair pair;
     pair.value = stringValue;
@@ -44,7 +44,14 @@ void Store::Add(std::string key, std::string stringValue)
     pairs.push_back(pair);
 }
 
-void Store::PrintToFile(const std::string& fileName)
+void Store::Add(std::string key, const Store& store)
+{
+    Store newStore = store;
+    newStore.name = key;
+    stores.push_back(newStore);
+}
+
+std::string Store::PrintToFile(const std::string& fileName)
 {
     std::stringstream output;
 
@@ -72,9 +79,24 @@ void Store::PrintToFile(const std::string& fileName)
         }
     }
 
+    for (Store store : stores)
+    {
+        output << "\n";
+        output << "[" << store.name << "]\n";
+        output << store.PrintToFile(fileName);
+    }
+
     std::string outputString = output.str();
     std::fstream outfile(fileName, std::ios::out);
     outfile << outputString;
+    return outputString;
+}
+
+std::string Trim(const std::string& str)
+{
+    size_t start = str.find_first_not_of(" \t");
+    size_t end = str.find_last_not_of(" \t");
+    return (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
 }
 
 void Store::ReadFromFile(const std::string& fileName)
@@ -86,38 +108,58 @@ void Store::ReadFromFile(const std::string& fileName)
         return;
     }
 
+    Store* currentStore = this; // Pointer to the current store, initially pointing to this Store object
     std::string line;
+
     while (std::getline(infile, line))
     {
-        // Remove any leading/trailing whitespace
-        line.erase(0, line.find_first_not_of(" \t"));
-        line.erase(line.find_last_not_of(" \t") + 1);
+        line = Trim(line); // Remove any leading/trailing whitespace
 
-        // Skip empty lines and comments (assuming comments start with #)
+        // Skip empty lines and comments
         if (line.empty() || line[0] == '#')
         {
             continue;
         }
 
-        // Find the position of the '=' sign
+        // Check if the line is a section header
+        if (line[0] == '[' && line.back() == ']')
+        {
+            std::string sectionName = line.substr(1, line.size() - 2);
+            sectionName = Trim(sectionName);
+
+            // Search for an existing store with the given name
+            auto it = std::find_if(stores.begin(), stores.end(), [&sectionName](const Store& s)
+            {
+                return s.name == sectionName;
+            });
+
+            // If store does not exist, create a new one
+            if (it == stores.end())
+            {
+                Store newStore;
+                newStore.name = sectionName;
+                stores.push_back(newStore);
+                currentStore = &stores.back(); // Set currentStore to the new store
+            }
+            else
+            {
+                currentStore = &(*it); // Set currentStore to the existing store
+            }
+
+            continue;
+        }
+
+        // Split the line into key and value
         size_t equalPos = line.find('=');
         if (equalPos == std::string::npos)
         {
             continue; // Ignore lines without '='
         }
 
-        // Extract key and value
-        std::string key = line.substr(0, equalPos);
-        std::string valueStr = line.substr(equalPos + 1);
+        std::string key = Trim(line.substr(0, equalPos));
+        std::string valueStr = Trim(line.substr(equalPos + 1));
 
-        // Remove any leading/trailing whitespace from key and value
-        key.erase(0, key.find_first_not_of(" \t"));
-        key.erase(key.find_last_not_of(" \t") + 1);
-
-        valueStr.erase(0, valueStr.find_first_not_of(" \t"));
-        valueStr.erase(valueStr.find_last_not_of(" \t") + 1);
-
-        // Determine the type of the value and store in the pairs vector
+        // Determine the type of the value and store it in the current store's pairs vector
         Pair pair;
         pair.key = key;
 
@@ -151,12 +193,11 @@ void Store::ReadFromFile(const std::string& fileName)
             pair.value = valueStr;
         }
 
-        // Add to the pairs vector
-        pairs.push_back(pair);
+        // Add the pair to the current store's pairs vector
+        currentStore->pairs.push_back(pair);
     }
 
     infile.close();
 }
-
 
 }

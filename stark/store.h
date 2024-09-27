@@ -40,7 +40,8 @@ public:
     void Add(std::string key, bool boolValue);
     void Add(std::string key, int intValue);
     void Add(std::string key, float floatValue);
-    void Add(std::string key, std::string stringValue);
+    void Add(std::string key, const char* stringValue);
+    void Add(std::string key, const Store& store);
 
     template<typename T>
     T Get(std::string key)
@@ -57,10 +58,27 @@ public:
         return T();
     }
 
-    void PrintToFile(const std::string& fileName);
+    // Function to get a nested store by its name
+    Store* GetStore(const std::string& storeName)
+    {
+        auto it = std::find_if(stores.begin(), stores.end(),
+            [&storeName](const Store& store) { return store.name == storeName; });
+
+        if (it != stores.end())
+        {
+            return &(*it);
+        }
+
+        return nullptr; // Return nullptr if the store is not found
+    }
+
+    std::string PrintToFile(const std::string& fileName);
     void ReadFromFile(const std::string& fileName);
+
+    std::string name = "";
 private:
     std::vector<Pair> pairs;
+    std::vector<Store> stores;
 };
 
 }
