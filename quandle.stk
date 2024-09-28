@@ -1,14 +1,12 @@
-
-projectName = 'Stark'
+myAge = 20
+meStandinOnBenis = True
+myName = 'Quandle dingle'
+LightSpeed = 23.105949
 
 [child]
-
-# This is the first child of the main store
-
-string = 'hey jude'
+string = 'bruh'
 INTEGER = 251
 
 [nextChild]
-
 newstring = 'OH CMON'
 SpeedOfSound = 251.131195
