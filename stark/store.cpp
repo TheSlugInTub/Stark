@@ -108,42 +108,37 @@ void Store::ReadFromFile(const std::string& fileName)
         return;
     }
 
-    Store* currentStore = this; // Pointer to the current store, initially pointing to this Store object
-    std::string line;
+    Store* currentStore = this;     std::string line;
 
     while (std::getline(infile, line))
     {
-        line = Trim(line); // Remove any leading/trailing whitespace
+        line = Trim(line); 
 
-        // Skip empty lines and comments
         if (line.empty() || line[0] == '#')
         {
             continue;
         }
 
-        // Check if the line is a section header
         if (line[0] == '[' && line.back() == ']')
         {
             std::string sectionName = line.substr(1, line.size() - 2);
             sectionName = Trim(sectionName);
 
-            // Search for an existing store with the given name
             auto it = std::find_if(stores.begin(), stores.end(), [&sectionName](const Store& s)
             {
                 return s.name == sectionName;
             });
 
-            // If store does not exist, create a new one
             if (it == stores.end())
             {
                 Store newStore;
                 newStore.name = sectionName;
                 stores.push_back(newStore);
-                currentStore = &stores.back(); // Set currentStore to the new store
+                currentStore = &stores.back();             
             }
             else
             {
-                currentStore = &(*it); // Set currentStore to the existing store
+                currentStore = &(*it); 
             }
 
             continue;
@@ -151,15 +146,12 @@ void Store::ReadFromFile(const std::string& fileName)
 
         // Split the line into key and value
         size_t equalPos = line.find('=');
-        if (equalPos == std::string::npos)
-        {
-            continue; // Ignore lines without '='
+        if (equalPos 
         }
 
         std::string key = Trim(line.substr(0, equalPos));
         std::string valueStr = Trim(line.substr(equalPos + 1));
 
-        // Determine the type of the value and store it in the current store's pairs vector
         Pair pair;
         pair.key = key;
 
@@ -181,7 +173,6 @@ void Store::ReadFromFile(const std::string& fileName)
             pair.type = PairType::Float;
             pair.value = std::stof(valueStr);
         }
-        // Otherwise, assume it's a string
         else
         {
             // Remove single quotes around strings if they exist
@@ -193,7 +184,6 @@ void Store::ReadFromFile(const std::string& fileName)
             pair.value = valueStr;
         }
 
-        // Add the pair to the current store's pairs vector
         currentStore->pairs.push_back(pair);
     }
 
